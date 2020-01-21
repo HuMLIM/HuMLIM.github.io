@@ -4,6 +4,8 @@ main:
     url: https://humlim.github.io
   - title: "Project"
     url: /project
+  - title: "Categories"
+    url: /categories
   # - title: "About"
   #   url: https://mmistakes.github.io/minimal-mistakes/about/
   # - title: "Sample Posts"
