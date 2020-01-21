@@ -19,8 +19,8 @@ locale                   : "en-US"
 title                    : "HuMLIM's Blog"
 title_separator          : "-"
 subtitle                 : # site tagline that appears below site title in masthead
-name                     : "Your Name"
-description              : "An amazing website."
+name                     : "hunmin.lim"
+description              : "my playground."
 url                      : # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
@@ -159,6 +159,7 @@ footer:
 include:
   - .htaccess
   - _pages
+  - _draft/cpp_template
 exclude:
   - "*.sublime-project"
   - "*.sublime-workspace"
