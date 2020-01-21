@@ -1,7 +1,6 @@
 ---
-title: "cpp_template"
+title: "C++ template category"
 permalink: /categories/cpp_template
 layout: single
 ---
-
-## C++ template categorie
+- [Templeate basic](https://humlim.github.io/categories/cpp_template/template_basic)

@@ -1,3 +1,7 @@
+---
+permalink: /categories/cpp_template/template_basic
+layout: single
+---
 ### template basic draft page
 ---
 tamplate 기본  
