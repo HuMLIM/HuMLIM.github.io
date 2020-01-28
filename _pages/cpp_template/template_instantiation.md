@@ -1,4 +1,8 @@
-### template instantiation draft page
+---
+permalink: /categories/cpp_template/template_instantiation
+layout: single
+---
+### template instantiation
 ---
 - Instantiation(인스턴스화)
     - complier에 의해 실제 code가 생성 되는 것을 인스턴스화(instantiation)라고 한다.
