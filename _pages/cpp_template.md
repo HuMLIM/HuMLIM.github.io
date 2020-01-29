@@ -5,3 +5,4 @@ layout: single
 ---
 - [Templeate basic](https://humlim.github.io/categories/cpp_template/template_basic)
 - [Templeate instantiation](https://humlim.github.io/categories/cpp_template/template_instantiation)
+- [Templeate type deduction](https://humlim.github.io/categories/cpp_template/template_type_deduction)
