@@ -88,3 +88,167 @@ layout:
 
     - Upcasting 사용 예
     > ![upcasting 사용 예](../_img/composite_pattern.png)
+
+- abstract class
+    ```cpp
+    class Shape //추상 클래스
+    {
+    public:
+        virtual void Draw() = 0; // 순수 가상함수
+    };
+
+    class Rect : public Shape
+    {
+    public:
+        virtual void Draw() {} // 구현부를 제공하면 추상 아님
+    };
+
+    int main()
+    {
+        Shape s; //error 추상클래스는 일반 객체 생성이 되지 않는다.
+        Shape* p; // ok
+
+        Rect r; // Draw() 구현 함수가 없으면 error
+    }
+    ```
+    > 순수 가상 함수(pure virtual function)
+    > - 함수 선언 뒤에 "=0"을 표기한 가상함수
+    > - 함수의 구현부가 없다.
+
+    > 추상 클래스(abstrcat class)
+    > - 순수 가상 함수를 한 개 이상 가지고 있는 클래스
+
+    > 추상 클래스 특징
+    > - 객체를 생성할 수 없다.
+    > - 포인터 변수는 만들 수 있다.
+    > - 순수 가상함수의 구현부를 제공하지 않은 경우 파생 클래스도 추상 클래스 이다.
+    > - 파생 클래스에게 특정 함수를 반드시 구현하라고 지시하기위해 사용된다.
+
+- interface 와 coupling  
+    새로운 것이 추가 되었을때 기존의 코드가 수정되는 것은 좋지 않은 Design이다.  
+    - OCP(Open Close Principle)
+        > 기능확장에는 열려있고(Open), 코드 수정에는 닫혀 있어야(Close), 한다는 이론(Principle)
+    ```cpp
+    class Camera
+    {
+    public:
+        void take() { cout << "take picture" << endl; }
+    };
+
+    class HDCamera
+    {
+    public:
+        void take() { cout << "take HD picture" << endl; }
+    };
+
+    class People
+    {
+    public:
+        void useCamera(Camera* p) { p->take(); }
+        void useHDCamera(HDCamera* p) { p->take(); }
+    };
+
+    int main()
+    {
+        People p;
+        Camera c;
+        p.useCamera(&c);
+
+        HDCamera hc;
+        p.useCamera(&hc);
+    }
+    ```
+    > Camera class와 People class는 강한 결합관계
+        > - 객체가 서로 상호 작용할 때 서로에 대해서 잘 알고 있는 것(?)
+        > - 교체/확장이 불가능한 경직된 디자인
+  
+    ```cpp
+    //규칙 : 모든 카메라는 아래 인터페이스로 구현해야 한다.
+
+    /* 
+    class ICamera
+    {
+    public:
+        virtual void take() = 0;
+        virtual ~ICamera() {}    // 누군가의 부모역할을 해야하므로 가상 소멸자를 써야한다??
+    };
+    */
+    // C++에는 interface keyword가 없기 떄문에 아래와 같이 struct로도 많이 사용한다.(public keyword생략 가능)
+    struct ICamera
+    {
+        virtual void take() = 0;
+        virtual ~ICamera() {}
+    };
+
+    class Camera : public ICamera
+    {
+    public:
+        void take() { cout << "take picture" << endl; }
+    };
+
+    class People
+    {
+    public:
+        void useCamera(ICamera* p) { p->take(); }
+
+    };
+    ```
+    > 약한 결합 관계
+        > - 객체가 서로 상호 작용하지만, 서로에 대해 잘 알지 못하는 것.
+        > - 교체/확장이 가능한 유연한 디자인
+        > - 객체는 상호간에 인터페이스를 통해서 통신 해야 함
+        > - Client는 구현에 의존하지 말고 인터페이스에 의존
+
+- Design pattern example
+    ```cpp
+    class Shape
+    {
+    public:
+        virtual void Draw() { cout << "Shape Rect" << endl; } // 1. 파생 클래스의 공통의 특징은 반드시 기반 클래스에도 있어야 한다.
+                                                              // 2. 파생 클래스에서 재정의 되는 함수는 반드시 가상 함수로 만들어야 한다.
+        // 자신의 복사본을 만드는 가상함수 : Prototype design pattern
+        virtual Shape* Clone() { return new Shape(*this); }
+    };
+
+    class Rect : public Shape
+    {
+    public:
+        virtual void Draw() { cout << "Draw Rect" << endl; } // 파생 클래스에서는 virtual keyword는 필요없으나
+                                                             // 나중에 헷갈릴 수 있으니 적어주자
+        virtual Shape* Clone() { return new Rect(*this); }                                                     
+    };
+
+    class Circle : public Shape
+    {
+    public:
+        virtual void Draw() { cout << "Circle Rect" << endl; }
+        virtual Shape* Clone() { return new Circle(*this); } 
+    };
+
+    int main()
+    {
+        vector<Shape*> v; // 공통의 기반 클래스가 있다면 하나의 컨테이너에서 관리가 가능하다.
+
+        while( 1 )
+        {
+            int cmd;
+            cin >> cmd;
+
+            if ( cmd == 1 ) v.push_back( new Rect );
+            else if ( cmd == 2 ) v.push_back( new Circle );
+            else if ( cmd == 8 )
+            {
+                cout << "index >>";
+                int k;
+                cin >> k;
+                // k 번째 도형의 복사본을 v에 추가한다.
+                v.push_back( v[k]->Clone() );
+            }
+            else if ( cmd == 9 )
+            {
+                for (auto p : v)
+                    p->Draw();  // 다형성 : 동일한 함수(메서드)호출이 상황(객체)에 따라 다르게 동작하는 것
+            }
+        }
+    }
+    ```
