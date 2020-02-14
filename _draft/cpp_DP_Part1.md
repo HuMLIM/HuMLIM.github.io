@@ -204,7 +204,7 @@ layout:
     class Shape
     {
     public:
-        virtual void Draw() { cout << "Shape Rect" << endl; } // 1. 파생 클래스의 공통의 특징은 반드시 기반 클래스에도 있어야 한다.
+        virtual void Draw() { cout << "Draw Shape" << endl; } // 1. 파생 클래스의 공통의 특징은 반드시 기반 클래스에도 있어야 한다.
                                                               // 2. 파생 클래스에서 재정의 되는 함수는 반드시 가상 함수로 만들어야 한다.
         // 자신의 복사본을 만드는 가상함수 : Prototype design pattern
         virtual Shape* Clone() { return new Shape(*this); }
@@ -221,7 +221,7 @@ layout:
     class Circle : public Shape
     {
     public:
-        virtual void Draw() { cout << "Circle Rect" << endl; }
+        virtual void Draw() { cout << "Draw Circle" << endl; }
         virtual Shape* Clone() { return new Circle(*this); } 
     };
 
@@ -247,8 +247,36 @@ layout:
             else if ( cmd == 9 )
             {
                 for (auto p : v)
-                    p->Draw();  // 다형성 : 동일한 함수(메서드)호출이 상황(객체)에 따라 다르게 동작하는 것
+                    p->Draw();  // 다형성(polymorphism) : 동일한 함수(메서드)호출이 상황(객체)에 따라 다르게 동작하는 것
             }
         }
     }
+    ```
+- template method
+    - 공통적으로 변하지 않는 전체적인 흐름을 기반 클래스에서 제공하고(public, final)
+    - 변해야 하는 부분을 가상함수(private 또는 protected)로 제공해서 파생 클래스가 재정의 할 수 있도록 한다.
+    ```cpp
+    /* Draw 할때 lock을 걸어주는 동작을 만들고 싶다면? */
+    class Shape
+    {
+    protected:
+        //virtual void DrawImp() { cout << "Draw Shape" << endl; }
+        virtual void DrawImp() = 0; //파생 클래스에서 무조건 재정의 해야한다면 순수 가상함수로 만드는 것이 더 좋다.
+    public:
+        virtual void Draw() final {         // 파생 클래스에서 재정의 하지 못하도록 final keyword를 사용한다.
+            cout << "mutex lock" << endl;   // *여기서는 cout으로 표현만 한다.
+            //cout << "Shape Rect" << endl;   // 변해야 하는 부분
+            DrawImp();
+            cout << "mutex unlock" << endl; 
+        }
+        //virtual Shape* Clone() { return new Shape(*this); }
+        virtual Shape* Clone() = 0; //파생 클래스에서 무조건 재정의 해야한다면 순수 가상함수로 만드는 것이 더 좋다.
+    };
+
+    class Rect : public Shape
+    {
+    public:
+        virtual void DrawImp() { cout << "Draw Rect" << endl; } // 변해야 하는 부분은 파생 클래스에서 재정의 한다.
+        virtual Shape* Clone() { return new Rect(*this); }                                                     
+    };
     ```
