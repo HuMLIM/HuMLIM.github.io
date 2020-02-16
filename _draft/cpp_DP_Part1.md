@@ -2,7 +2,7 @@
 permalink: 
 layout:
 ---
-### Design Pattern
+### Design Pattern part1
 - Design Pattern 이란? 자주 사용하는 코딩 패턴에 이름을 부여 한 것
 
 - Protected constructor
@@ -266,7 +266,7 @@ layout:
         virtual void Draw() final {         // 파생 클래스에서 재정의 하지 못하도록 final keyword를 사용한다.
             cout << "mutex lock" << endl;   // *여기서는 cout으로 표현만 한다.
             //cout << "Shape Rect" << endl;   // 변해야 하는 부분
-            DrawImp();
+            DrawImp();  // hook 메소드: 알고리즘의 여러 단계중 일부는 서브클래스에서 구현
             cout << "mutex unlock" << endl; 
         }
         //virtual Shape* Clone() { return new Shape(*this); }
