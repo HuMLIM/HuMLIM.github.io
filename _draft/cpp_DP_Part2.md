@@ -139,8 +139,8 @@ layout:
         Edit edit;
 
         // edit 클래스에 유효성 정책 연결
-        LimitDigitValidator v(5);
-        edit.setValidator(&v);
+        LimitDigitValidator v1(5);
+        edit.setValidator(&v1);
 
         // edit 클래스의 정책을 실시간에 변경 할 수 있다.
         LimitDigitValidator v2(10);
@@ -154,3 +154,49 @@ layout:
 
     }
     ```
+- Policy Base Design
+    - Strategy pattern의 가상함수는 성능저하가 약간 있다.
+    - 정책 클래스를 template 인자를 inline 함수로 교체하는 기술을 단위 전략 디자인(Policy Base Design) 이라고 한다
+    - 컴파일 시간에 정책을 결정하기 때문에 실행 시간에 교체 할 수 없다.(코드에 유형에 따라 선택한다.)
+    ```cpp
+    template<typename T, typename ThreadModel> class List
+    {
+        ThreadModel tm; //동기화 정책을 담은 클래스
+    public:
+        void push_front(const T& a)
+        {
+            tm.Lock();  //ThreadModel(정책)에 따라 inline 함수로 치환되기 때문에 빠르다.
+            //...리스트에 값을 저장하는 구현부라고 가정
+            tm.Unlock();
+        }
+    };
+
+    class MutexLock
+    {
+        //mutex m;
+    public:
+        inline void Lock() { cout << "mutex Lock" << endl; }
+        inline void Unlock() { cout << "mutex Unlock" << endl; }
+    };
+
+    class NoLock
+    {
+        //mutex m;
+    public:
+        inline void Lock() {}
+        inline void Unlock() {}
+    };
+
+    List<int, MutexLock> s1;    //전역변수는 tread에 안전하지 않다.
+    List<int, NoLock> s2;
+
+    int main()
+    {
+        s1.push_front(10);
+        s2.push_front(10);
+    }
+    ```
+||Stratege pattern|Policy Base Design|
+|:--:|:--------------:|:----------------:|
+| 속도 | 가상함수 기반 / 느리다 | 템플릿 인자 사용 / 인라인 치환 가능 / 빠르다 |
+| 유연성 | 실행시간 정책 교체 가능 | 컴파일 시간 정책 교체 가능 |
