@@ -38,7 +38,10 @@ layout:
         virtual command() override
         {
             cout << getTitle() << endl;
-            getchar();
+            // menu의 event를 처리하는 방법
+            //  1. template method : event 종류 마다 class가 생성 되는 단점
+            //  2. strategy pattern(Listener) : event마다 switch case의 분기가 증가되는 단점 
+            //  3. 2번의 방법을 개선하여 객체가 아닌 함수를 연결 한다. (범용)함수 포인터 사용
         }
     };
 
@@ -46,7 +49,8 @@ layout:
     {
         vecotr<BaseMenu*> v;
     public:
-        PopupMenu(string s) : BaseMenu(s) {}
+        //PopupMenu(string s) : BaseMenu(s) {}
+        using BaseMenu::BaseMenu;   // 생성자 상속
         void addMenu(BaseMenu* p) { v.push_back(p); }
 
         void command()
@@ -104,5 +108,101 @@ layout:
         // 시작
         menubar->command();
         return 1;
+    }
+    ```
+- 범용 함수 포인터
+    - 일반 함수 포인터와 멤버함수 포인터를 동일한 모양의 type으로 받을 수 있도록 하는 방법
+    ![general_function_poiinter](../_img/general_function_poiinter.png)
+    ```cpp
+    void foo() { cout << "foo" << endl; }
+
+    class Dialog
+    {
+    public:
+        void Close() { cout << "Dialog::Close" << endl; }
+    };
+
+    struct IAction
+    {
+        virtual void Execute() = 0;
+        virtual ~IAction() {}    
+    };
+
+    class FunctionAction : public IAction
+    {
+        typedef void(*FP)();    // ??
+        FP handler;
+    public:
+        FunctionAction(FP f) : handler(f) {}
+        virtual void Execute() override { handler(); }
+    }
+
+    template<typename T>
+    class MemberAction : public IAction
+    {
+        typedef void(T::*FP)();    // ??
+        FP handler;
+        T* target;
+    public:
+        MemberAction(FP f, T* obj) : handler(f), target(obj) {}
+        virtual void Execute() override { (target->*handler)(); }   // ??
+    };
+
+    // 클래스의 함수 템플릿 만들기
+    template<typename T>
+    MemberAction* action(void(T::*f)(), T* obj)
+    {
+        return new MemberAction<T>(f, obj);
+    }
+
+    // 일관성을 유지하기 위해 FunctionAction class의 action함수를 만든다.
+    FunctionAction* action(void(*f)())
+    {
+        return new FunctionAction(f);
+    }
+
+    int main()
+    {
+        Dialog dlg;
+
+        //IAction* p1 = new FunctionAction(&foo);
+        IAction p1 = action(&foo);
+        //IAction* p2 = new MemberAction<Dialog>(&Dialog::Close, &dlg);
+        IAction p2 = action(&Dialog::Close, &dlg);
+
+        p1->Execute();  // foo 실행
+        p2->Execute();  // Dialog::Close 실행
+    }
+    ```
+- function 템플릿
+    - C++11부터는 범용 함수포인터를 지원한다.
+    - 일반함수, 멤버함수, 람다표현식, 함수 객체등을 모두 담을 수 있다.
+    ```cpp
+    #include <iostream>
+    #include <functional>
+
+    using namespase std;
+
+    void foo() { cout << "foo" << endl; }
+    void goo(int n) { cout << "goo" << n << endl; }
+
+    class Dialog
+    {
+    public:
+        void Close() { cout << "Dialog::Close" << endl; }
+    };
+
+    int main()
+    {
+        function<void()> f; // void: return type, (): 인자
+        f = &foo();
+        f();    // foo() 호출
+
+        Dialog dlg;
+        f = bind(&Dialog::Close, &dlg)  // action(&Dialog::Close, &dlg)와 유사
+        f();    // dlg.Close() 호출
+        
+        f = bind(&goo, 5);  // bind를 이용하여 인자도 고정이 가능하다.
+        f();    // goo(5) 호출
     }
     ```
