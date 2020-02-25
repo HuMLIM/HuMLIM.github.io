@@ -24,7 +24,7 @@ layout:
     public:
         BaseMenu(string s) : title(s) {}
         string getTitle() const { return title; }
-        virtual command() = 0;
+        virtual void command() = 0;
         virtual BaseMenu* getSubMenu(int idx) { return 0; }
         virtual void addMenu(BaseMenu* p) { throw "unsupported function..."}
     };
@@ -35,7 +35,7 @@ layout:
     public:
         MenuItem(string s, int n) : BaseMenu(s), id(n) {}   // 기반클래스의 디폴트 생성자가 없을 경우 
                                                             // 파생클래스 생성자에서 기반클래스 생성자를 호출 해야 한다.
-        virtual command() override
+        virtual void command() override
         {
             cout << getTitle() << endl;
             // menu의 event를 처리하는 방법
@@ -204,5 +204,75 @@ layout:
         
         f = bind(&goo, 5);  // bind를 이용하여 인자도 고정이 가능하다.
         f();    // goo(5) 호출
+    }
+    ```
+- Decorator Pattern
+    - 기존에 있던 기능은 유지하면서 실시간으로 새로운 기능을 추가하는 Pattern
+
+        |기능 추가 방법|기능 추가 대상|기능 추가 시점|
+        |:--:|:--:|:--:|
+        |상속에 의한 기능 추가|클래스|코드 작성시|
+        |구성에 의한 기능 추가|객체|실행시간|
+
+    ![decorator_pattern](../_img/decorator_pattern.png)
+    ```cpp
+    // 객체와 기능추가객체(decorator)의 동일한 부모 클래스
+    struct Component
+    {
+        virtual void Fire() = 0;
+        virtual ~Component() {}
+    };
+
+    // 객체
+    class SpaceCraft : public Component
+    {
+        int color;
+        int speed;
+    public:
+        void Fire() { cout << "Space Craft : -------" << endl; }; 
+    };
+
+    // 기능 추가 객체의 기반 클래스
+    class IDecorator : public Component
+    {
+        Component* craft;
+    public:
+        IDecorator(Component* p) : craft(p) {}
+        void Fire() { craft->Fire(); }
+    };
+
+    // 기능 추가 객체(Decorator)
+    class LeftMissile : public IDecorator
+    {
+    public:
+        LeftMissile(Component* p) : IDecorator(p) {}
+        void Fire()
+        {
+            IDecorator::craft->Fire();
+            cout << "Left Missile: >>>>>>>>>" << endl;
+        }
+    };
+
+    class RightMissile : public IDecorator
+    {
+    public:
+        RightMissile(Component* p) : IDecorator(p) {}
+        void Fire()
+        {
+            IDecorator::craft->Fire();
+            cout << "Right Missile: >>>>>>>>>" << endl;
+        }
+    };
+
+    int main()
+    {
+        SpaceCraft sc;
+        //sc.Fire();
+
+        LeftMissile lm(&sc);
+        //lm.Fire();
+
+        RightMissile rm(&lm);
+        rm.Fire();
     }
     ```
