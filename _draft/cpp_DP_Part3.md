@@ -6,11 +6,13 @@ layout:
 
 - Composite 패턴을 활용한 메뉴 만들기
     - 객체들을 트리구조로 구성하여 부분과 전체를 나타내는 계층구조로 만드는 것
-    - 개별 객체의 복합 객체를 구별하지 않고 동일한 방법으로 다룬다.(command 함수)
+    - 개별 객체와 복합 객체를 구별하지 않고 동일한 방법으로 다룬다.(command 함수)
     - 일부 파생클래스에만 필요한 함수에 경우 기반클래스에 구현하고 비정상 리턴 혹은 throw를 던지도록 한다.
-    ![composite_upcasting](../_img/composite_upcasting.png)
+
     ![composite_tree_detali](../_img/composite_tree_detali.png)
+    ![composite_upcasting](../_img/composite_upcasting.png)
     ![composite_clsas_diagram](../_img/composite_clsas_diagram.png)
+    
     ```cpp
     #include <iostream>
     #include <string>
@@ -26,7 +28,7 @@ layout:
         string getTitle() const { return title; }
         virtual void command() = 0;
         virtual BaseMenu* getSubMenu(int idx) { return 0; }
-        virtual void addMenu(BaseMenu* p) { throw "unsupported function..."}
+        virtual void addMenu(BaseMenu* p) { throw "unsupported function..."; }
     };
 
     class MenuItem : public BaseMenu
@@ -39,7 +41,7 @@ layout:
         {
             cout << getTitle() << endl;
             // menu의 event를 처리하는 방법
-            //  1. template method : event 종류 마다 class가 생성 되는 단점
+            //  1. template method : event 종류 마다 퍄생 class가 생성 되는 단점
             //  2. strategy pattern(Listener) : event마다 switch case의 분기가 증가되는 단점 
             //  3. 2번의 방법을 개선하여 객체가 아닌 함수를 연결 한다. (범용)함수 포인터 사용
         }
@@ -61,7 +63,7 @@ layout:
             
             for (int i = 0; i < sz; i++)
             {
-                cout << i +1 << ". " << getTitle() << endl;
+                cout << i +1 << ". " << v[i]->getTitle() << endl;
             }
 
             cout << sz + 1 << ". 상위 메뉴로" << endl;
@@ -70,9 +72,16 @@ layout:
             cout << "메뉴를 선택하세요 >> ";
             cin >> cmd;
 
+            if ( cmd < 0 || cmd > sz + 1)   // 예외 처리
+                continue;
+
+            if ( cmd == sz + 1) // 상위 메뉴로 선택
+                break;
+
             // 선택된 메뉴 실행
-            v[cmd+1]->command();    // 핵심 : 다형성
+            v[cmd-1]->command();    // 핵심 : 다형성
         }
+
         BaseMenu* getSubMenu(int idx)
         {
             return v[idx];
@@ -107,12 +116,129 @@ layout:
 
         // 시작
         menubar->command();
-        return 1;
+        return 0;
     }
     ```
+    ```cpp
+    /*template method*/
+    class MenuItem : public BaseMenu
+    {
+        int id;
+    public:
+        MenuItem(string s, int n) : BaseMenu(s), id(n) {}   
+        virtual void command() override
+        {
+            cout << getTitle() << endl;
+            doCommand();
+        }
+        virtural void doCommand();
+    };
+
+    class viewInfo : public MenuItem
+    {
+    public:
+        using MenuItem::MenuItem;
+        virtual void doCommand()
+        {
+            cout << "LG Electronics" << endl;
+        }
+    };
+
+    int main()
+    {
+        viewInfo m1("정보 확인", 11);
+        m1.command();
+    }
+    ```
+
+    ```cpp
+    /*Listener*/
+    struct IMenuListener
+    {
+        virtual void doCommand(int id) = 0;
+        virtual ~doCommand() {}
+    };
+
+    class MenuItem : public BaseMenu
+    {
+        int id;
+        IMenuListener* pListener = 0;
+    public:
+        void setListener(IMenuListener* p) { pListener = p; }
+        MenuItem(string s, int n) : BaseMenu(s), id(n) {}   
+        virtual void command() override
+        {
+            cout << getTitle() << endl;
+            if ( pListener != 0)
+                pListener->doCommand(id);
+        }
+    };
+
+    class Display : public IMenuListener
+    {
+        virtual void doCommand(int id)
+        {
+            switch(id)
+            {
+            case 21: cout << "21" << endl; break;
+            case 22: cout << "22" << end; break;
+            default: break;
+            }
+        }
+    };
+
+    int main()
+    {
+        Display d;
+        MenuItem m1("해상도 변경", 21);
+        MenuItem m2("명암 변경", 22);
+        m1.setListener(&d);
+        m2.setListener(&d);
+
+        m1.command();   // 21출력
+        m2.command();   // 22출력
+    }
+    ```
+
+    ```cpp
+    /*function*/
+    #include <functional>
+
+    class MenuItem : public BaseMenu
+    {
+        int id;
+        function<void()> handler;
+    public:
+        void setHandler(function<void()> h) { handler = h; }
+        MenuItem(string s, int n) : BaseMenu(s), id(n) {}   
+        virtual void command() override
+        {
+            cout << getTitle() << endl;
+            handler();
+        }
+    };
+
+    int main()
+    {
+        MenuItem m1("음량 조절", 31);
+        m1.setHander([]() { cout << "volume up" << endl; });
+        m1.command();
+    }
+    ```
+
 - 범용 함수 포인터
     - 일반 함수 포인터와 멤버함수 포인터를 동일한 모양의 type으로 받을 수 있도록 하는 방법
+    ```cpp
+    int main()
+    {
+        void(*f1)() = &foo;
+        void(Dialog::*f2)() = &Dialog::Close();
+    }
+    ```
+    > 좌변의 type을 동일 하게 사용할 수 있도록 하는 방법이다.
+    
     ![general_function_poiinter](../_img/general_function_poiinter.png)
+
     ```cpp
     void foo() { cout << "foo" << endl; }
 
@@ -130,7 +256,7 @@ layout:
 
     class FunctionAction : public IAction
     {
-        typedef void(*FP)();    // ??
+        typedef void(*FP)();
         FP handler;
     public:
         FunctionAction(FP f) : handler(f) {}
@@ -140,7 +266,7 @@ layout:
     template<typename T>
     class MemberAction : public IAction
     {
-        typedef void(T::*FP)();    // ??
+        typedef void(T::*FP)();
         FP handler;
         T* target;
     public:
@@ -174,9 +300,11 @@ layout:
         p2->Execute();  // Dialog::Close 실행
     }
     ```
+
 - function 템플릿
     - C++11부터는 범용 함수포인터를 지원한다.
     - 일반함수, 멤버함수, 람다표현식, 함수 객체등을 모두 담을 수 있다.
+    
     ```cpp
     #include <iostream>
     #include <functional>
@@ -206,8 +334,11 @@ layout:
         f();    // goo(5) 호출
     }
     ```
+
 - Decorator Pattern
     - 기존에 있던 기능은 유지하면서 실시간으로 새로운 기능을 추가하는 Pattern
+    - State pattern은 객체에 상태를 전달하여 객체의 속성을 변경 시키고
+      Decorator pattern은 기능에 객체를 전달하여 객체 기능 + 추가 기능을 수행한다.
 
         |기능 추가 방법|기능 추가 대상|기능 추가 시점|
         |:--:|:--:|:--:|
@@ -216,7 +347,7 @@ layout:
 
     ![decorator_pattern](../_img/decorator_pattern.png)
     ```cpp
-    // 객체와 기능추가객체(decorator)의 동일한 부모 클래스
+    // 객체와 기능추가객체(decorator)의 기반 클래스
     struct Component
     {
         virtual void Fire() = 0;
