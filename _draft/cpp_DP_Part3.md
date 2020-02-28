@@ -57,29 +57,32 @@ layout:
 
         void command()
         {
-            system("cls");
-
-            int sz = v.size();
-            
-            for (int i = 0; i < sz; i++)
+            while( 1 )
             {
-                cout << i +1 << ". " << v[i]->getTitle() << endl;
+                system("cls");
+
+                int sz = v.size();
+                
+                for (int i = 0; i < sz; i++)
+                {
+                    cout << i +1 << ". " << v[i]->getTitle() << endl;
+                }
+
+                cout << sz + 1 << ". 상위 메뉴로" << endl;
+
+                int cmd;
+                cout << "메뉴를 선택하세요 >> ";
+                cin >> cmd;
+
+                if ( cmd < 0 || cmd > sz + 1)   // 예외 처리
+                    continue;
+
+                if ( cmd == sz + 1) // 상위 메뉴로 선택
+                    break;
+
+                // 선택된 메뉴 실행
+                v[cmd-1]->command();    // 핵심 : 다형성
             }
-
-            cout << sz + 1 << ". 상위 메뉴로" << endl;
-
-            int cmd;
-            cout << "메뉴를 선택하세요 >> ";
-            cin >> cmd;
-
-            if ( cmd < 0 || cmd > sz + 1)   // 예외 처리
-                continue;
-
-            if ( cmd == sz + 1) // 상위 메뉴로 선택
-                break;
-
-            // 선택된 메뉴 실행
-            v[cmd-1]->command();    // 핵심 : 다형성
         }
 
         BaseMenu* getSubMenu(int idx)
