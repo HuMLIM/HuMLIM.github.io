@@ -491,3 +491,85 @@ layout:
         - 진짜 포인터는 함수가 종료될때 아무일도 하지 않는다.
         - 스마트포인터를 사용하면 함수가 종료될때 소멸자를 호출하는 원리를 이용하여 
         - 사용자가 생성과 소멸을 신경쓰지 않도록 한다.
+
+- Facade pattern
+    - 다수 객체들의 인터페이스 집합에 대해 하나의 인터페이스를 제공하여
+    - 사용자의 편의를 위해 포괄적 개념의 인터페이스를 제공 하는 것이다.
+    - 즉, 서브시스템 내부에서 작동하고 있는 많은 클래스들의 관계나 사용법을 의식하지 않고 단순화된 하나의 인터페이스만 사용
+    - 클래스 간의 의존 관계가 줄어들고 복잡성 또한 낮아지는 효과를 볼 수 있는 디자인 패턴
+    - ![Facade](../_img/Facade.png)
+
+- Bridge pattern
+    - 구현과 추상화를 분리하여 각각을 독립적으로 변형할 수 있게 한다. 
+    - ![nonbridge](../_img/nonbridge.png) < non-bridge >
+    ```cpp
+    struct IMP3
+    {
+        virtual void Play() = 0;
+        virtual void Stop() = 0;
+        virtual ~IMP3() {}
+    };
+
+    class IPod : public IMP3
+    {
+    public:
+        void Play() { cout << "play music" << endl; }
+        void Stop() { cout << "stop music" << endl; }
+    };
+
+    class People
+    {
+    public:
+        void UseMP3(IMP3* p)
+        {
+            p->Play();
+        }
+    };
+    ```
+    - ![bridge](../_img/bridge.png) < bridge >
+    - 1분 미리듣기 기능을 추가하고자 한다면?
+        - IMP3에 구현하면 모든 MP3에 추가해야하므로 bridge에 구현한다.
+    ```cpp
+    class MP3 : public IMP3
+    {
+        IMP3* pImpl;
+    public:
+        MP3()
+        {
+            pImpl = new IPod;
+        }
+        void Play() { pImpl->Play(); }
+        void Stop() { pImpl->Stop(); }
+        void PlayOneMinute()
+        {
+            pImpl->Play();
+            sleep(1);
+            pImpl->Stop();
+        }
+    };
+
+    class People
+    {
+    public:
+        void UseMP3(MP3* p)
+        {
+            p->Play();
+            p->playOneMinute();
+        }
+    };
+    ```
+- PIMPL(Pointer to IMPlementation)
+    - 컴파일 속도를 향상
+    - 완벽한 정보은닉이 가능하다 - 헤더파일까지 감출 수 있다.
+    - ![PIMPL](../_img/pimpl.png)
+        > 사용자에게 Point2.h와 동적 모듈(dll or shared lib)을 전달하여 구현부(PointImpl.cpp, PointImpl.h)를 감출 수 있다.
+        >> 컴파일러 방화벽
+
+- 간접층의 사용의도에 따라 패턴을 구분한다. 
+
+    |사용의도|패턴|
+    |:-----:|:---:|
+    |인터페이스의 변경|Adapter|
+    |대행자|Proxy|
+    |서브시스템의 복잡한 과정 은닉|Facade|
+    |Update를 독립적으로 수행|Bridge|
