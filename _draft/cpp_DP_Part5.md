@@ -151,3 +151,164 @@ layout:
         ```
         - [C++ idioms](https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms)
 
+- iterator pattern
+    - container 자료구조에 상관없이 동일한 방법으로 각 요소에 순차적으로 접근 하는 것
+    
+    ```cpp
+    /* GetObject : 반복자가 가리키는 곳에 있는 요소에 접근 하는 함수
+       MoveNext  : 반복자 다음 요소로 이동하는 함수 */
+    #include <iostream>
+    using namespace std;
+
+    template<typename T> struct Node
+    {
+        T   data;
+        Node* next;
+        Node( const T& d, Node* n) : data(d), next(n) {}
+    };
+
+    template<typename T> struct IEnumerator
+    {
+        virtual ~IEnumerator() {}
+        virtual T& GetObject() = 0;
+        virtual bool MoveNext() = 0;
+    };
+
+    template<typename T> class SlistEnumerator : public IEnumerator<T>  // container
+    {
+        Node<T>* current = 0;
+    public:
+        SlistEnumerator(Node<T>* p = 0) : current(p) {}
+
+        virtual T& GetObject() { return current->data; }
+        virtual bool MoveNext() 
+        {
+            current = current->next;
+            return current;
+        }
+    };
+
+    template<typename T> struct IEnumerable
+    {
+        virtual ~IEnumerable() {}
+        virtual IEnumerator<T>* GetEnumerator() = 0;
+    };
+    template<typename T> class slist : public IEnumerable<T>
+    {
+        Node<T>* head = 0;
+    public:
+        virtual IEnumerator<T>* GetEnumerator()
+        {
+            return new SlistEnumerator<T>( head);
+        }
+
+        void push_front(const T& n) { head = new Node<T>(n, head);}
+        T  front()                  { return head->data;}
+    };
+
+    template<typename T> void Show(IEnumerator<T>* p)
+    {
+        do
+        {
+            cout << p->GetObject() << endl; 
+        } while ( p->MoveNext() );
+    }
+
+    int main()
+    {
+        int x[10] = {1,2,3,4,5,6,7,8,9,10};
+        int* p1 = x;
+        //Show( p1);    // error : 인터페이스 기반에서는 배열포인터를 인자로 사용할 수 없다.
+
+        slist<int> s;
+
+        s.push_front(10);
+        s.push_front(20);
+        s.push_front(30);
+        s.push_front(40);
+
+        IEnumerator<int>* p = s.GetEnumerator();
+
+        Show( p );
+        delete p;   //  new로 생성된 Enumerator 객체 삭제
+    }
+    ```
+    - 인터페이스 기반 반복자 (C++ 관점에서 단점)
+        - Show 함수에 배열을 전달 할 수 없다.
+        - 반복자는 new를 만들어 진다. : 반드시 delete해야 한다.(smart pointer로 해결 가능)
+        - 요소에 접근하고 이동하는 함수가 가상함수이다 : 오버헤드가 있다. (inline으로 대체 불가??)
+    
+    - STL 방식의 반복자
+        > 인터페이스 방식을 보완한다.  
+        - +*인터페이스를 사용하지 않는다.*  
+        - +이동 및 접근 함수는 *포인터 규칙에* 따른다
+            > -> ++로 이동, *fh 접근 (연산자 재정의)
+        - +이동 및 접근 함수는 *inline함수*로 작성한다.
+        - +배열에도 적용 가능하다.
+        - -코드메모리 사용량이 인터페이스 기반보다는 많다.
+
+        ```cpp   
+        #include <iostream>
+        using namespace std;
+
+        template<typename T> struct Node
+        {
+            T   data;
+            Node* next;
+            Node( const T& d, Node* n) : data(d), next(n) {}
+        };
+
+        template<typename T> class slist_iterator   // container
+        {
+            Node<T>* current = 0;
+        public:
+            inline slist_iterator(Node<T>* p = 0) : current(p) {}
+
+            inline T& operator*() { return current->data; } // p*
+            slist_iterator& operator++()    // ++p 
+            {
+                current = current->next;
+                return *this;
+            }
+        };
+
+        template<typename T> class slist
+        {
+            Node<T>* head = 0;
+        public:
+            slist_iterator<T> begin()   // return값이 추상 클래스가 아니므로 값으로 리턴
+            {
+                return slist_iterator<T>(head);
+            }
+
+            void push_front(const T& n) { head = new Node<T>(n, head);}
+            T  front()                  { return head->data;}
+        };
+
+        template<typename T> void Show(T p, T p2)   // 구간 끝을 조사하기 위해 반복자를 2개 받는다. p2는 마지막 다음 요소
+        {
+            do
+            {
+                cout << *p << endl; 
+            } while ( ++p != p2 );
+        }
+
+        int main()
+        {
+            int x[10] = {1,2,3,4,5,6,7,8,9,10};
+            int* p1 = x;
+            Show(p1, x+10);    
+
+            slist<int> s;
+
+            s.push_front(10);
+            s.push_front(20);
+            s.push_front(30);
+            s.push_front(40);
+
+            slist_iterator<int> p = s.begin();
+            cout << *p << endl; // 40
+            ++p;
+            cout << *p << endl; // 30
+        }
+        ```    
