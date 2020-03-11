@@ -311,4 +311,89 @@ layout:
             ++p;
             cout << *p << endl; // 30
         }
-        ```    
+        ```
+- visitor pattern
+    - 클래스를 변경하거나 멤버를 추가하지 않고 새로운 오퍼레이션을 정의 하는 방법
+    - 캡슐화, 정보은닉은 위반하게 되는 경우도 생긴다.(e.g setTitle)
+    - 모든 요소를 2배로 만드는 코드가 필요하다면?
+        1. 외부에서 직접 연산 수행
+        ```cpp
+        list<int> s = { 1,2,3,4,5 };
+        for (auto& n : s)
+            n = n * 2;
+        ```
+        2. 멤버함수로 기능을 제공
+        ```cpp
+        list<int> s = { 1,2,3,4,5, };
+        s.twice_all_element();
+        s.show_all_element();
+        ```
+        3. 방문자 패턴을 사용
+        ```cpp
+        list<int> s = { 1,2,3,4,5 };
+        TwiceVisitor<int> tv; // 방문자
+        s.accept(&tv);
+        ShowVisitor<int> sv; // 방문자
+        s.accept(&sv);
+        ```
+    ```cpp
+    #include <iostream>
+    #include <list>
+
+    using namespace std;
+
+    // 방문자(visitor)의 인터페이스
+    template<typename T> struct IVisitor
+    {
+        virtual void visitor(T& elem) = 0;
+        virtual ~IVisitor() {}
+    };
+
+    template<typename T> class TwiceVisitor : public IVisitor<T>
+    {
+    public:
+        virtual void visitor(T& elem) { elem = elem * 2; }
+    };
+
+    template<typename T> class ShowVisitor : public IVisitor<T>
+    {
+    public:
+        virtual void visitor(T& elem) { cout << elem << endl; }
+    };
+
+    // 방문의 대상의 인터페이스
+    template<typename T> struct IAcceptor
+    {
+        virtual void accept(IVisitor<T>* p) = 0;
+        virtual ~IAcceptor() {}
+    };
+
+    template<typename T> class List : public list<T>, public IAcceptor<T>
+    {
+    public:
+        using list<T>::list;    // c++11 생성자 상속
+        virtual void accept(IVisitor<T>* p)
+        {
+            for (auto& e: *this)
+                p->visitor(e);
+        }
+    };
+
+    int main()
+    {
+    List<int> s = { 1,2,3,4,5,6,7,8,9,10};
+
+    TwiceVisitor<int> tv;
+    s.accept(&tv);
+
+    ShowVisitor<int> sv;
+    s.accept(&sv);
+    }
+    ```
+    - 일반 객체 지향 프로그램 : 새로운 타입(클래스) 추가 쉬움 / 새로운 함수(기능) 추가 어려움
+        > 새로운 클래스가 생겨도 기존 코드는 변경할 필요가 없다.  
+        > 새로운 기능이 추가(기반클래스에 가상함수로 구현)되면 기존에 코드도 모두 추가 해야한다.
+    - 방문자 패턴 프로그램    : 새로운 타입(클래스) 추가 어려움 / 새로운 함수(기능) 추가 쉬움
+        > 새로운 기능이 추가 되면 새로운 visitor클래스가 추가될 뿐 기존의 visitor는 변경이 되지 않는다.  
+        > 새로운 클래스가 추가(visitor 인터페이스에 가상함수에 추가)되면 기존 visitor에 모두 추가 되어야 한다.
+    - 즉, 기반클래스(인터페이스)에 변경이 적은 구조로 설계해야 한다.
