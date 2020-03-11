@@ -561,7 +561,7 @@ layout:
 - PIMPL(Pointer to IMPlementation)
     - 컴파일 속도를 향상
     - 완벽한 정보은닉이 가능하다 - 헤더파일까지 감출 수 있다.
-    - ![PIMPL](../_img/pimpl.png)
+    - ![PIMPL](../_img/PIMPL.png)
         > 사용자에게 Point2.h와 동적 모듈(dll or shared lib)을 전달하여 구현부(PointImpl.cpp, PointImpl.h)를 감출 수 있다.
         >> 컴파일러 방화벽
 
