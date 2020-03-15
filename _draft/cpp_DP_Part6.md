@@ -294,3 +294,202 @@ layout:
     - 클래스가 아닌 객체를 등록하는 factory
         - 자주 사용하는 견본품을 등록해서 복사 생성 한다.
         - prototype 패턴이라고 한다.
+
+- Abstract factory
+    - 여러 객체의 군(Button, Edit)을 생성하기 위한 인터페이스를 제공한다.  
+    ![Abstract_factory](../_img/Abstract_factory.png)
+    ```cpp
+    #include <iostream>
+    #include <string.h>
+    using namespace std;
+
+    struct IEdit
+    {
+        virtual void Draw() = 0;
+        virtual ~IEdit() {}
+    };
+    struct IButton
+    {
+        virtual void Draw() = 0;
+        virtual ~IButton() {}
+    };
+
+    struct WinButton : public IButton { void Draw() { cout << "Draw WinButton" << endl;}};
+    struct GTKButton : public IButton { void Draw() { cout << "Draw GTKButton" << endl;}};
+
+    struct WinEdit : public IEdit { void Draw() { cout << "Draw WinEdit" << endl;}};
+    struct GTKEdit : public IEdit { void Draw() { cout << "Draw GTKEdit" << endl;}};
+
+    struct IFactory // abstract factory
+    {
+        virtual IButton* CreateButton() = 0;
+        virtual IEdit* CreateEdit() = 0;
+        virtual ~IFactory() {}
+    };
+
+    struct WinFactory : public IFactory
+    {
+        IButton* CreateButton() { return new WinButton; }
+        IEdit* CreateEdit() { return new WinEdit; }
+    };
+
+    struct GTKFactory : public IFactory
+    {
+        IButton* CreateButton() { return new GTKButton; }
+        IEdit* CreateEdit() { return new GTKEdit; }
+    };
+
+    int main(int argv, char** argc)
+    {
+        IFactory* pFactory;
+        if ( strcmp(argc[1], "Windows") == 0)
+            pFactory = new WinFactory;
+        else
+            pFactory = new GTKFactory;
+
+        IButton* pBtn = pFactory->CreateButton();
+        pBtn->Draw();
+    }
+    ```
+- Factory method
+    - template method와 유사한 형태
+    - 객체 생성의 인터페이스는 정의 하고 있지만, 어떤 클래스의 인스턴스를 생성할지는 서브 클래스가 하는 방식
+    - 즉, 클래스의 인스턴스를 만드는 시점을 서브 클래스로 미루는 것
+    ```cpp
+    class BaseDialog
+    {
+    public:
+        void init()
+        {
+            IButton* pBtn = CreateButton();
+            IEdit* pEdit = CreateEdit();
+            
+            pBtn->Draw();
+            pEdit->Draw();
+        }
+        virtual IButton* CreateButton() = 0;    // 인터페이스만 정의 
+        virtual IEdit* CreateEdit() = 0;        // 인터페이스만 정의
+    };
+
+    // 어떤 인스턴스를 생성할지는 서브 클래스에서 결정
+    struct WinDialog : public BaseDialog
+    {
+        virtual IButton* CreateButton() { return new WinButton; }
+        virtual IEdit* CreateEdit() { return new WinEdit; }
+    };
+
+    struct GTKDialog : public BaseDialog
+    {
+        virtual IButton* CreateButton() { return new GTKButton; }
+        virtual IEdit* CreateEdit() { return new GTKEdit; }
+    };
+    ```
+    > abstract factory와 factory method의 차이점은 뭐지???
+
+- Builder pattern
+    - 객체를 생성하는 방법(makexxx)과 표현하는 방법(XML, Text)을 정의하는 클래스를 별도로 분리
+    - 전략 패턴, 상태 패턴 과 흡사
+        > 전략 패턴은 알고리즘을 변경할 때 VS 상태 패턴은 동작을 변경할 때 VS 빌더 패턴은 객체를 만들 때
+    ```cpp
+    #include <iostream>
+    #include <string>
+    using namespace std;
+
+    // 입학 지원서
+    using Application = string; // class Application {}
+
+    // 객체의 표현을 생성하는 인터페이스
+    struct IBuilder
+    {
+        virtual void makeName(string name) = 0;
+        virtual void makePhone(string phone) = 0;
+        virtual void makeAddress(string addr) = 0;
+        
+        virtual Application getResult() = 0;
+        
+        virtual ~IBuilder() {}
+    };
+
+    // 지원서 만드는 클래스
+    class Director
+    {
+        string name = "HONG";
+        string phone = "010-111-1111";
+        string address = "SEOUL KANGNAMGU";
+        IBuilder* pBuilder;
+    public:
+        void setBuilder(IBuilder* p) { pBuilder = p; }
+        
+        Application construct()
+        {
+            pBuilder->makeName(name);
+            pBuilder->makePhone(phone);
+            pBuilder->makeAddress(address);
+            
+            return pBuilder->getResult();
+        }
+    };
+
+    class XMLBuilder : public IBuilder
+    {
+        Application app;
+    public:
+        virtual void makeName(string name)
+        {
+            app += "<NAME>" + name + "</NAME>\n";
+        }
+        virtual void makePhone(string phone)
+        {
+            app += "<PHONE>" + phone + "</PHONE>\n";
+        }
+        virtual void makeAddress(string addr)
+        {
+            app += "<ADDRESS>" + addr + "</ADDRESS>\n";
+        }
+
+        virtual Application getResult() { return app;}
+    };
+
+    class TextBuilder : public IBuilder
+    {
+        Application app;
+    public:
+        virtual void makeName(string name)
+        {
+            app += name + "\n";
+        }
+        virtual void makePhone(string phone)
+        {
+            app += phone + "\n";
+        }
+        virtual void makeAddress(string addr)
+        {
+            app +=  addr + "\n";
+        }
+
+        virtual Application getResult() { return app;}
+    };
+
+    int main()
+    {
+        Director d;
+        XMLBuilder xb;
+        d.setBuilder(&xb);
+
+        Application app = d.construct();
+        cout << app << endl;
+        
+        TextBuilder tb;
+        d.setBuilder(&tb);
+        app = d.construct();
+        cout << app << endl;
+    }
+    ```
+- GoF의 디자인 패턴 종류
+    - 행위 패턴
+    ![behavior_pattern](../_img/behavior_pattern.png)
+    - 생성 패턴
+    ![creation_pattern](../_img/creation_pattern.png)
+    - 구조 패턴
+    ![struct_pattern](../_img/struct_pattern.png)
+    
