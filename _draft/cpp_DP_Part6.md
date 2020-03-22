@@ -35,6 +35,7 @@ layout:
         public:
             virtual ~Shape() {}
         };
+
         class Rect : public Shape
         {
             Rect() {}   // 생성자를 private로 만들어 자유로운 객체 생성을 막는다.
@@ -287,13 +288,131 @@ layout:
         Shape* p = factory.CreateShape(1);
     }
     ```
-    - 제품 등록형 factory
+    - 제품 등록형 factory : 사용자가 제품을 공장에 직접 등록
+    ```cpp
+    class ShapeFactory
+    {
+        MAKE_SINGLETON(ShapeFactory)
+        typedef Shape* (*CREATOR)();
+        map<int, CREATOR> create_map;
 
-    - 제품 자동 등록형 factory
+    public:
+        void Register( int type, CREATOR f )
+        {
+            create_map[type] = f;
+        }
+
+        Shape* CreateShape(int type )
+        {
+            Shape* p = 0;
+            auto ret = create_map.find( type );
+            if ( ret == create_map.end() )
+                return 0;
+            p = create_map[type]();
+
+            return p;
+        }
+    };
+    
+    int main()
+    {
+        ShapeFactory& factory = ShapeFactory::getInstance();
+
+        // 공장에 제품을 등록한다.
+        factory.Register( 1, &Rect::Create);
+        factory.Register( 2, &Circle::Create);
+
+        //factory.ShowProduct();
+        vector<Shape*> v;
+
+        Shape* p = factory.CreateShape(1);
+        if (p != 0)
+            v.push_back(p)
+    }
+    ```
+    - 제품 자동 등록형 factory : 제품(class)을 정의와 동시에 공장에 등록 된다.
+    ```cpp
+    struct RegisterShape
+    {
+        RegisterShape( int type, Shape*(*f)() )
+        {
+            ShapeFactory& factory = ShapeFactory::getInstance();
+            factory.Register(type, f);
+        }
+    };
+
+    class Rect : public Shape
+    {
+    public:
+        virtual void Draw() { cout << "Draw Rect" << endl;}
+
+        static Shape* Create() { return new Rect;}
+        static RegisterShape rs;
+    };
+    RegisterShape Rect::rs( 1, &Rect::Create);
+
+    // 모든 도형이 지켜야 하는 규칙을 매크로로 제공
+    #define DECLARE_SHAPE( classname )                  \
+        static Shape* Create() { return new classname;}      \
+        static RegisterShape rs;
+
+    #define IMPLEMENT_SHAPE( type, classname )                \
+        RegisterShape classname::rs(type, &classname::Create);
+
+    class Circle : public Shape
+    {
+    public:
+        virtual void Draw() { cout << "Circle Rect" << endl;}
+
+        DECLARE_SHAPE( Circle )
+    };
+    IMPLEMENT_SHAPE( 2, Circle )
+    ```
     
     - 클래스가 아닌 객체를 등록하는 factory
         - 자주 사용하는 견본품을 등록해서 복사 생성 한다.
         - prototype 패턴이라고 한다.
+    ```cpp
+    class ShapeFactory
+    {
+        MAKE_SINGLETON(ShapeFactory)
+        map<int, Shape*> protype_map;
+
+    public:
+        void Register( int type, Shape* sample )
+        {
+            protype_map[type] = sample;
+        }
+
+        Shape* CreateShape(int type )
+        {
+            Shape* p = 0;
+            auto ret = protype_map.find( type );
+            if ( ret == protype_map.end() )
+                return 0;
+
+            p = protype_map[type]->Clone();
+
+            return p;
+        }
+    };
+
+    int main()
+    {
+        ShapeFactory& factory = ShapeFactory::getInstance();
+
+        Rect* r1 = new Rect;// 빨간색 크기 5
+        Rect* r2 = new Rect;// 파란색 크기 10
+
+        // 공장에 객체 등록
+        factory.Register( 1, r1);
+        factory.Register( 2, r2);
+        vector<Shape*> v;
+        Shape* p = factory.CreateShape(cmd);
+        if ( p != 0 )
+            v.push_back( p );
+    }
+    ```
 
 - Abstract factory
     - 여러 객체의 군(Button, Edit)을 생성하기 위한 인터페이스를 제공한다.  
@@ -352,7 +471,7 @@ layout:
     }
     ```
 - Factory method
-    - template method와 유사한 형태
+    - template method와 유사한 형태 (형태는 같지만 가상함수로 뽑아낸 부분이 객체의 생성을 담당하는 경우 factory method라고 부름)
     - 객체 생성의 인터페이스는 정의 하고 있지만, 어떤 클래스의 인스턴스를 생성할지는 서브 클래스가 하는 방식
     - 즉, 클래스의 인스턴스를 만드는 시점을 서브 클래스로 미루는 것
     ```cpp
@@ -384,8 +503,7 @@ layout:
         virtual IEdit* CreateEdit() { return new GTKEdit; }
     };
     ```
-    > abstract factory와 factory method의 차이점은 뭐지???
-
+    
 - Builder pattern
     - 객체를 생성하는 방법(makexxx)과 표현하는 방법(XML, Text)을 정의하는 클래스를 별도로 분리
     - 전략 패턴, 상태 패턴 과 흡사
