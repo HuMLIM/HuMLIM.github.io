@@ -73,4 +73,9 @@ layout: single
         foo(3);      // identity가 class template이므로 컴파일러가 3을 가지고 type을 추론 할 수 없다. ERROR
         ```
     - 사용예 : [perfect forwarding]()
+
+- template argument type deduction
+    - 규칙 1. template 인자가 value type 일 때
+        - 인자가 가진 const, volatile, reference 속성을 제거하고 T type을 결정 한다.
+        - type의 const가 아닌 인자의 const속성이 제거되는 것임
     
