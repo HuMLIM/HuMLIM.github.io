@@ -34,11 +34,19 @@
         access_key와 secret_key는 파일에 hardcording되면 안되므로 다른 방법을 통해 적용
 
     - ### resource
+        ##### 기본 문법
         ```json
         resource "resource_type" "resource_name" {
-	      <ATTR_NAME>="<ATTR_VALUE>"
-	    }
+          <ATTR_NAME>="<ATTR_VALUE>"
+        }
         ```
+        ##### Meta-Argument
+
+        resource_type에 상관없이 모든 곳에서 사용할 수 있는 argument로 *depends_on*, *count*, *for_each*, *provider*, *life_cycle*이 있다.
+        - for_each : map이나 set자료형을 순회하면서 키 또는 값을 가져온다. 키 또는 값을 가져올 때는 each.key 또는 each.value를 사용 한다.  
+        ✔ map이나 set의 값이 apply 이후에 할당되는 값이면 안된다.
+      
+        - provider : resource의 provider를 변경 할 수 있다.
 
     - ### variable
         ```json
@@ -91,3 +99,4 @@
     - ### output
         ```json
         ```
++ ## 

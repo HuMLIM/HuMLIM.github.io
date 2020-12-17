@@ -38,8 +38,10 @@
         }
         ```
 
-        [aws kms encryption 방법](https://ryanpark.dev/419fe316-5049-4c03-bc50-87582855faa1)
+        [aws kms encryption 방법](https://ryanpark.dev/419fe316-5049-4c03-bc50-87582855faa1)  
+        [aws kms 개념 설명](https://bluese05.tistory.com/71)
         </details>
+        
 
     - node_type(Required): 프로비저닝 node type(DC2(large/8xlarge), RA3(4xlarge/16xlarge))
     - cluster_type(Optional): single-node or multi-node. console에서는 1~32 선택 가능      
