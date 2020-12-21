@@ -2,7 +2,7 @@
 ##### terraform 0.11버전과 그 이후 버전간에는 문법적, 구조적 차이가 있으므로 0.12버전 이상을 사용 한다.
 ##### [Terraform 공식 ref](https://www.terraform.io/docs/configuration/index.html)
 + ## **기본 구조**
-    ```json
+    ```hcl
     <BLOCK TYPE> "<BLOCK LABEL>" "<BLOCK LABEL>" {
       # Block body
       <IDENTIFIER> = <EXPRESSION> # Argument
@@ -11,7 +11,7 @@
 
 + ## BLOCK TYPE
     - ### terraform
-        ```json
+        ```hcl
         terraform {
           required_providers {
             aws = {
@@ -24,7 +24,7 @@
         terraform의 버전과 provider의 버전이 따로 관리 된다.
 
     - ### provider
-        ```json
+        ```hcl
         provider "aws" {
           access_key = "AWS ACCESS KEY"
           secret_key = "AWS SECRET KEY"
@@ -35,7 +35,7 @@
 
     - ### resource
         ##### 기본 문법
-        ```json
+        ```hcl
         resource "resource_type" "resource_name" {
           <ATTR_NAME>="<ATTR_VALUE>"
         }
@@ -49,7 +49,7 @@
         - provider : resource의 provider를 변경 할 수 있다.
 
     - ### variable
-        ```json
+        ```hcl
         variable "aws_region" {
           default = "ap-northeast-2"    // default가 없을 경우 사용자에게 입력 받는다.
           type = string
@@ -70,7 +70,7 @@
         변수를 사용할 때는 var.\<BLOCK LABEL NAME> 형식으로 사용한다.
 
     - ### module
-        ```json
+        ```hcl
         module "network" {
           source = "./net"
           base_cidr_block = "10.0.0.0/16"
@@ -80,7 +80,7 @@
         source는 필수 속성이며, path정보를 가지고 있다. local path뿐만 아니라 다양한 정보가 올 수 있다.
         
     - ### data
-        ```json
+        ```hcl
         data "aws_ami" "example" {
           owners = ["account ID"]
           filter {
@@ -97,6 +97,6 @@
         > 다수의 결과가 return될 경우 most_recent 속성을 통해 최근 사용한 AMI로 선택할 수 있다.
 
     - ### output
-        ```json
+        ```hcl
         ```
 + ## 
