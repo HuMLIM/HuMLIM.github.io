@@ -1,3 +1,4 @@
+Terraform provider AWS
 ##### [AWS provider guide page](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 
 - ### redshift
@@ -15,6 +16,9 @@
     master_password    = "Mustbe8characters" 
     node_type          = "dc1.large"
     cluster_type       = "single-node"
+    number_of_nodes           = 1
+    cluster_subnet_group_name = "subnet_group_id"
+
   }
   ```
   - Argument
@@ -41,10 +45,11 @@
         [aws kms encryption 방법](https://ryanpark.dev/419fe316-5049-4c03-bc50-87582855faa1)  
         [aws kms 개념 설명](https://bluese05.tistory.com/71)
         </details>
-        
 
     - node_type(Required): 프로비저닝 node type(DC2(large/8xlarge), RA3(4xlarge/16xlarge))
-    - cluster_type(Optional): single-node or multi-node. console에서는 1~32 선택 가능      
+    - cluster_type(Optional): single-node or multi-node.
+    - number_of_nodes(Optional): multi-node일 경우 node의 갯수 선택 1~32
+    - cluster_subnet_group_name(Optional): 생성한 vpc를 사용하기 위해서는 클러스터 subnet group이 구성 되어 있어야 한다.
 
   - depend on
     * cluster subnet group
@@ -75,6 +80,8 @@
     * vpc
     * subnet
 
+
+
 - ### s3
 #### aws_s3_bucket
 ```json
@@ -103,6 +110,7 @@ resource "aws_s3_bucket" "b" {
         |aws-exec-read|버킷과 객체|EC2는 S3에서 READ 엑세스 권한을 가짐. (AMI GET용도)|
         |log-delivery-write|버킷|LogDelivery 그룹은 버킷에 대해 WRITE, READ_ACP 권한을 가짐|
       </details>
+      
     - grant(Optional): Canned ACL이외의 ACL권한을 설정 할 수 있다.
     - lifecycle_rule(Optional): 객체의 lifecycle을 정할 수 있다. *expiration*으로 만료일을 지정하거나 *transition*으로 s3 Glacier등의 다른 storage class로 이전할 수 있다. versioning을 사용한다면 *noncurrent_version_transition*, *noncurrent_version_expiration*옵션을 사용하여 구버전의 이전 및 삭제를 지연할 수 있다. 
 
@@ -118,6 +126,5 @@ resource "aws_s3_bucket_public_access_block" "example" {
   restrict_public_buckets = true
 }
 ```
-
 
 
